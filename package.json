@@ -5,14 +5,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p eval",
     "build": "tsc",
     "index": "tsx src/shell/cli.ts index",
     "ask": "tsx src/shell/cli.ts ask",
     "chat": "tsx src/shell/cli.ts chat",
     "watch": "tsx src/shell/cli.ts watch",
     "stats": "tsx src/shell/cli.ts stats",
-    "mcp": "tsx src/shell/mcp.ts"
+    "mcp": "tsx src/shell/mcp.ts",
+    "mcp:http": "tsx src/shell/mcp.ts --http"
   },
   "keywords": [],
   "author": "",

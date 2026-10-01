@@ -24,6 +24,8 @@
 - `shell/` 才许碰 argv 和 console;`config.ts` 是组装根(唯一同时 import
   core 和 adapters 的地方)
 - 依赖方向:shell → config → { core, adapters } → lib;core 不知道 adapters 存在
+- 根 tsconfig 只编译 src(产物干净);eval/ 有自己的 noEmit tsconfig 接住
+  IDE 与类型检查,`npm run typecheck` 已串上两个工程 —— 别把 eval 加回根 include
 
 ## 不变量
 
@@ -46,6 +48,10 @@
 - chat 的 readline:不要用 `question()`(同一 data 块多行会丢),
   自己维护行队列 + waiter,见 `shell/cli.ts`
 - MCP stdio 下 stdout 被协议占用,`mcp.ts` 里日志只能走 console.error
+- MCP SDK 的 StreamableHTTPServerTransport:回调是 getter/setter 声明
+  (写类型带 undefined),`exactOptionalPropertyTypes` 下接不进 Transport
+  接口,要 `as unknown as Transport` 桥接;无会话模式 = 省略
+  sessionIdGenerator(显式传 undefined 会被同一选项拦)
 
 ## 代码风格
 
@@ -54,6 +60,9 @@
   (`fts5` 虚表名小写、`OR` 大写)
 - 注释只描述设计本身,不引用外部文档章节号
 - 新模块默认给注释式实现指引(骨架),用户点名要完整实现时才写全
-- MCP 已实现(`shell/mcp.ts`,stdio,SDK 1.31 的 `registerTool`)。
+- MCP 已实现(`shell/mcp.ts`,SDK 1.31 的 `registerTool`)。一套工具三种
+  传输:stdio(默认)、Streamable HTTP(`--http`,/mcp,无会话)、旧版
+  SSE(/sse,连接态,给老客户端);HTTP 默认只绑 127.0.0.1。
   工具面只有 search_notes / reindex_vault,刻意不做「生成」工具 ——
-  宿主自己有模型,给它片段即可;改完跑 `npx tsx eval/mcp-smoke.ts`
+  宿主自己有模型,给它片段即可。改完跑两个冒烟:
+  `npx tsx eval/mcp-smoke.ts`(stdio)、`npx tsx eval/mcp-http-smoke.ts`(HTTP)

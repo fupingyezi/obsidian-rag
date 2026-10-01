@@ -28,6 +28,7 @@ npm run chat           # 交互式连续提问
 | `npm run watch` | 只跑监听:保存笔记即更新索引 |
 | `npm run stats` | 索引统计(文件数 / 片段数) |
 | `npm run mcp` | 启动 MCP server(stdio),供 Claude Code / Cursor 接入 |
+| `npm run mcp:http` | 启动 MCP server(HTTP,默认 `127.0.0.1:3333`,`--port`/`--host` 可改) |
 
 ask / chat 通用选项:`-k <n>` 交给生成模型的片段数(默认 5),
 `-t 数据库,面试` 按标签过滤(要求片段包含全部标签)。
@@ -76,17 +77,23 @@ src/
 
 换供应商 = 改 `.env` 一个变量;core 对供应商一无所知。
 
-## 接入 MCP(Claude Code / Cursor)
+## 接入 MCP(Claude Code / Cursor / 远程客户端)
 
-stdio MCP server,工具面只有两个,刻意保持窄:
+一套工具(`search_notes` 检索、`reindex_vault` 同步),三种传输:
 
-| 工具 | 作用 |
-|------|------|
-| `search_notes` | 混合检索笔记库,返回片段原文与出处(路径:行号 + 标题路径) |
-| `reindex_vault` | 增量同步索引,返回统计 |
+| 传输 | 启动方式 | 客户端接法 |
+|------|---------|-----------|
+| stdio(默认) | `npm run mcp` | 宿主自己拉子进程 |
+| Streamable HTTP(现行) | `npm run mcp:http` | `http://127.0.0.1:3333/mcp` |
+| SSE(旧版协议) | 同上,同一端口 | `http://127.0.0.1:3333/sse` |
 
-**没有「生成答案」的工具** —— 宿主模型(Claude 等)自己读片段、自己作答,
-检索与生成分离,宿主才有主动权。自带生成的完整问答是 CLI 的 ask / chat。
+工具面只有两个,刻意保持窄。**没有「生成答案」的工具** —— 宿主模型自己读
+片段、自己作答,检索与生成分离,宿主才有主动权;自带生成的完整问答是 CLI
+的 ask / chat。
+
+HTTP 模式默认只绑 `127.0.0.1`——这是个人笔记库的检索口,不该暴露到网络;
+要局域网访问就 `--host 0.0.0.0`,自己承担。stdio 模式由宿主按需拉起;
+HTTP 模式则是常驻服务,客户端连接前先把它跑起来。
 
 Claude Code:
 
@@ -108,8 +115,9 @@ Cursor(`~/.cursor/mcp.json`):
 ```
 
 `.env` 与数据库路径都以项目根为基准,和宿主从哪个目录拉起进程无关。
-改了 `mcp.ts` 之后跑 `npx tsx eval/mcp-smoke.ts` 冒烟(它会故意从 `/tmp`
-拉起 server,顺带守住这条不变量)。
+改了 `mcp.ts` 之后跑两个冒烟:`npx tsx eval/mcp-smoke.ts`(stdio)和
+`npx tsx eval/mcp-http-smoke.ts`(HTTP,两个端点都验);两个脚本都故意
+从 `/tmp` 拉起 server,顺带守住这条不变量。
 
 ## 准确度调优
 
