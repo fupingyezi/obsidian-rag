@@ -1,5 +1,5 @@
 /**
- * core 对外契约。整个 core 只暴露两个函数:indexVault 和 ask。
+ * core 对外契约。整个 core 暴露三个能力:indexVault、ask、retrieve。
  *
  * 边界纪律(判断边界画没画对的唯一标准):本目录不允许出现
  * HTTP / MCP SDK / process.argv / console.log。
@@ -7,8 +7,8 @@
  * core 里不 new 任何实现 —— 换供应商 = 改一行构造参数,不是改业务逻辑。
  * 这样 core/ 可以脱离网络和数据库单独做单元测试,这是这个切分最大的回报。
  *
- * 契约形态是「模块导出两个函数」;但依赖注入要求它们能拿到 deps,
- * 所以用 createCore(deps) 工厂返回这两个函数,签名与契约一致。
+ * retrieve 单独暴露(而不只藏在 ask 内部)是给有宿主模型的壳用的:
+ * MCP 场景下宿主自己会读片段、自己生成,只需要检索这一段,不要替它调 LLM。
  */
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
@@ -24,6 +24,7 @@ import type {
   IndexResult,
   LLM,
   Reranker,
+  Source,
   Store,
 } from "./types.js";
 
@@ -47,6 +48,12 @@ export interface IndexVaultOpts {
 export interface Core {
   indexVault(opts: IndexVaultOpts): Promise<IndexResult>;
 
+  /** 裸检索,不生成 —— 给自带模型的壳(MCP)用;ask = retrieve + llm.chat */
+  retrieve(
+    q: string,
+    opts?: { topK?: number; filterTags?: string[] },
+  ): Promise<Source[]>;
+
   ask(
     q: string,
     opts?: { topK?: number; filterTags?: string[] },
@@ -56,6 +63,7 @@ export interface Core {
 export function createCore(deps: CoreDeps): Core {
   return {
     indexVault: (opts) => indexVault(deps, opts),
+    retrieve: (q, opts) => retrieve(deps, q, opts),
     ask: (q, opts) => ask(deps, q, opts),
   };
 }

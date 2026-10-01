@@ -8,6 +8,9 @@
  *   RERANK_*  重排(zhipu | none)
  *   LLM_*     生成(zhipu | deepseek)
  */
+import { isAbsolute, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { z } from "zod";
 
 import { createEmbedder } from "./adapters/embed.js";
@@ -17,6 +20,10 @@ import { createStore } from "./adapters/store.js";
 import { createCore } from "./core/index.js";
 import type { Core } from "./core/index.js";
 import type { Store } from "./core/types.js";
+
+// .env 与相对 DB_PATH 一律以项目根为基准,不随进程 cwd 漂移 ——
+// MCP 宿主会用任意 cwd 拉起本进程,cwd 相对路径会悄悄建出第二个空库
+const PROJECT_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 // 字段与 .env.example 一一对应;个人库 1024 维是甜点位,省一半存储和比对时间
 const EnvSchema = z.object({
@@ -49,9 +56,16 @@ export interface AppConfig {
 
 export function loadConfig(): AppConfig {
   try {
-    process.loadEnvFile();
+    process.loadEnvFile(join(PROJECT_ROOT, ".env"));
   } catch {
-    // .env 不存在就静默跳过,只读真实环境变量 —— 便于部署时由外部注入
+    // 项目根没有 .env 时再看进程 cwd(老用法);两处都没有就只用真实
+    // 环境变量 —— 便于部署时由外部注入。
+    // 环境变量永远优先:loadEnvFile 不覆盖已存在的变量
+    try {
+      process.loadEnvFile();
+    } catch {
+      // 两处都没有 .env,静默跳过
+    }
   }
   const env = EnvSchema.parse(process.env);
 
@@ -78,7 +92,9 @@ export function loadConfig(): AppConfig {
     llmApiKey:
       env.LLM_PROVIDER === "deepseek" ? env.DEEPSEEK_API_KEY : env.ZHIPU_API_KEY,
     vaultRoot: env.VAULT_ROOT,
-    dbPath: env.DB_PATH,
+    dbPath: isAbsolute(env.DB_PATH)
+      ? env.DB_PATH
+      : join(PROJECT_ROOT, env.DB_PATH),
   };
 }
 

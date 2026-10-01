@@ -8,6 +8,9 @@
 
 - `.env` 里有真实 key 和真实库路径(`/Users/yoshiko/note/note`):
   永远不要打印它的值、不要整文件覆盖;改配置只动目标行
+- `.env` 与相对 `DB_PATH` 以项目根为基准(config.ts 的 `PROJECT_ROOT`),
+  不随进程 cwd 漂移 —— MCP 宿主用任意 cwd 拉进程;`eval/mcp-smoke.ts`
+  从 /tmp 拉起 server 就是在守这条不变量
 - 冒烟测试不许碰真实库:用环境变量覆盖 `VAULT_ROOT` / `DB_PATH` 指向临时目录。
   `process.loadEnvFile()` 不会覆盖已存在的环境变量,所以 export 覆盖一定生效
 - openai SDK 遇 429 自动指数退避重试,表现为「卡住」—— 不是死锁,少打几次 API
@@ -42,6 +45,7 @@
   只有相对排序有效
 - chat 的 readline:不要用 `question()`(同一 data 块多行会丢),
   自己维护行队列 + waiter,见 `shell/cli.ts`
+- MCP stdio 下 stdout 被协议占用,`mcp.ts` 里日志只能走 console.error
 
 ## 代码风格
 
@@ -50,5 +54,6 @@
   (`fts5` 虚表名小写、`OR` 大写)
 - 注释只描述设计本身,不引用外部文档章节号
 - 新模块默认给注释式实现指引(骨架),用户点名要完整实现时才写全
-- `shell/mcp.ts` 目前是注释骨架,运行即抛 TODO —— 第 2 周再做,做之前先升
-  MCP SDK v2(坑清单写在那个文件头部)
+- MCP 已实现(`shell/mcp.ts`,stdio,SDK 1.31 的 `registerTool`)。
+  工具面只有 search_notes / reindex_vault,刻意不做「生成」工具 ——
+  宿主自己有模型,给它片段即可;改完跑 `npx tsx eval/mcp-smoke.ts`

@@ -27,6 +27,7 @@ npm run chat           # 交互式连续提问
 | `npm run chat` | 交互式问答,一个进程连续问,`exit` / Ctrl-D 退出 |
 | `npm run watch` | 只跑监听:保存笔记即更新索引 |
 | `npm run stats` | 索引统计(文件数 / 片段数) |
+| `npm run mcp` | 启动 MCP server(stdio),供 Claude Code / Cursor 接入 |
 
 ask / chat 通用选项:`-k <n>` 交给生成模型的片段数(默认 5),
 `-t 数据库,面试` 按标签过滤(要求片段包含全部标签)。
@@ -69,11 +70,46 @@ src/
 │   ├── llm.ts         智谱 / DeepSeek(openai SDK)
 │   └── store.ts       Store 适配:文件级状态迁移(单事务)+ 检索编排
 ├── lib/vec-db/      SQLite 细节:DDL(files/chunks/vec_chunks/chunks_fts)、KNN、FTS5
-├── shell/           壳:cli.ts(可用)/ mcp.ts(未实现,运行即抛 TODO)
+├── shell/           壳:cli.ts(命令行)/ mcp.ts(MCP server,stdio)
 └── types/           第三方类型补丁(segmentit)
 ```
 
 换供应商 = 改 `.env` 一个变量;core 对供应商一无所知。
+
+## 接入 MCP(Claude Code / Cursor)
+
+stdio MCP server,工具面只有两个,刻意保持窄:
+
+| 工具 | 作用 |
+|------|------|
+| `search_notes` | 混合检索笔记库,返回片段原文与出处(路径:行号 + 标题路径) |
+| `reindex_vault` | 增量同步索引,返回统计 |
+
+**没有「生成答案」的工具** —— 宿主模型(Claude 等)自己读片段、自己作答,
+检索与生成分离,宿主才有主动权。自带生成的完整问答是 CLI 的 ask / chat。
+
+Claude Code:
+
+```bash
+claude mcp add obsidian-rag -- npx tsx /path/to/obsidian-rag/src/shell/mcp.ts
+```
+
+Cursor(`~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "obsidian-rag": {
+      "command": "npx",
+      "args": ["tsx", "/path/to/obsidian-rag/src/shell/mcp.ts"]
+    }
+  }
+}
+```
+
+`.env` 与数据库路径都以项目根为基准,和宿主从哪个目录拉起进程无关。
+改了 `mcp.ts` 之后跑 `npx tsx eval/mcp-smoke.ts` 冒烟(它会故意从 `/tmp`
+拉起 server,顺带守住这条不变量)。
 
 ## 准确度调优
 
@@ -83,6 +119,5 @@ src/
 
 ## 路线图
 
-- [ ] MCP server(`shell/mcp.ts`,检索与生成分离的窄工具面)
 - [ ] 自动评测:采样已索引片段生成问题,测 top-3 命中率
 - [ ] 分块策略:长小节截断处的续篇片段召回

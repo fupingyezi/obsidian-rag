@@ -1,5 +1,7 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
+  // 只编译 src;eval/ 是评测脚本,用 tsx 直接跑,不进产物
+  "include": ["src"],
   "compilerOptions": {
     // File Layout
     "rootDir": "./src",
