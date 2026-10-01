@@ -12,7 +12,7 @@
  */
 import OpenAI from "openai";
 
-import type { LLM } from "../core/types.js";
+import type { LLM } from "#src/core/types";
 
 // OpenAI 兼容端点表。
 const BASE_URLS = {

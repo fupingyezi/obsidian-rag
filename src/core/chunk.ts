@@ -19,7 +19,7 @@
  */
 import matter from "gray-matter";
 
-import type { Chunk } from "./types.js";
+import type { Chunk } from "#src/core/types";
 
 /** 块长上限(字符)。中文约 1200 字 ≈ 1800 token,给 embedding 单条 token 上限留足余量 */
 const MAX_CHARS = 1200;

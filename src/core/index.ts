@@ -15,8 +15,8 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { watch as chokidarWatch } from "chokidar";
 
-import { parseFile, toEmbedText } from "./chunk.js";
-import { retrieve } from "./retrieve.js";
+import { parseFile, toEmbedText } from "#src/core/chunk";
+import { retrieve } from "#src/core/retrieve";
 import type {
   AskResult,
   Embedder,
@@ -26,7 +26,7 @@ import type {
   Reranker,
   Source,
   Store,
-} from "./types.js";
+} from "#src/core/types";
 
 /** 依赖注入:由 config.ts 按环境变量构造好再传进来 */
 export interface CoreDeps {

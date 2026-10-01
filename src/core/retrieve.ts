@@ -13,7 +13,7 @@ import type {
   ScoredChunk,
   Source,
   Store,
-} from "./types.js";
+} from "#src/core/types";
 
 // 三个魔法数,实现时直接用作常量:
 const RECALL_EACH = 50; //两路召回各取的候选数,个人库足够宽

@@ -13,13 +13,13 @@ import { fileURLToPath } from "node:url";
 
 import { z } from "zod";
 
-import { createEmbedder } from "./adapters/embed.js";
-import { createLLM } from "./adapters/llm.js";
-import { createReranker } from "./adapters/rerank.js";
-import { createStore } from "./adapters/store.js";
-import { createCore } from "./core/index.js";
-import type { Core } from "./core/index.js";
-import type { Store } from "./core/types.js";
+import { createEmbedder } from "#src/adapters/embed";
+import { createLLM } from "#src/adapters/llm";
+import { createReranker } from "#src/adapters/rerank";
+import { createStore } from "#src/adapters/store";
+import { createCore } from "#src/core/index";
+import type { Core } from "#src/core/index";
+import type { Store } from "#src/core/types";
 
 // .env 与相对 DB_PATH 一律以项目根为基准,不随进程 cwd 漂移 ——
 // MCP 宿主会用任意 cwd 拉起本进程,cwd 相对路径会悄悄建出第二个空库

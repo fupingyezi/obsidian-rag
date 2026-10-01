@@ -14,7 +14,7 @@
  * 绝对分数不能当「相关/不相关」的阈值用,只有相对排序有意义。
  *
  */
-import type { Reranker } from "../core/types.js";
+import type { Reranker } from "#src/core/types";
 
 /**
  * 按配置构造 Reranker。

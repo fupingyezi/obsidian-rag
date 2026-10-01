@@ -16,8 +16,8 @@ import { createInterface } from "node:readline";
 
 import { Command } from "commander";
 
-import { buildCore } from "../config.js";
-import type { Source } from "../core/types.js";
+import { buildCore } from "#src/config";
+import type { Source } from "#src/core/types";
 
 const program = new Command()
   .name("obsidian-rag")

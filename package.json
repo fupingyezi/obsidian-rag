@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "imports": {
+    "#src/*": "./src/*.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit && tsc -p eval",
     "build": "tsc",

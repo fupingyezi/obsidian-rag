@@ -6,10 +6,16 @@
     // File Layout
     "rootDir": "./src",
     "outDir": "./dist",
+    // bundler 解析:import 免后缀。别名 #src/* → src/*:
+    // 运行时走 package.json 的 imports 字段(锚定在导入文件,cwd 无关 ——
+    // MCP 宿主用任意目录拉进程也不怕;tsx 的 paths 发现锚定 cwd,担不了此任)。
+    // 注意 # 后不能直接跟 /,那是 Node 保留的非法形式。
+    // 代价:dist 不能再用 node 直跑
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": { "#src/*": ["./src/*"] },
 
     // Environment Settings
-    // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
     "target": "esnext",
     "types": ["node"],
 

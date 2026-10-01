@@ -56,6 +56,12 @@
 ## 代码风格
 
 - 双引号、2 空格缩进、中文注释
+- import 用 `#src/…` 别名、免后缀(如 `#src/core/types`):运行时靠
+  package.json 的 `imports` 字段解析,锚定在导入文件、cwd 无关 —— MCP 宿主
+  从任意目录拉进程都成立。别用 `@/`:tsx 的 tsconfig paths 发现锚定 cwd,
+  换目录启动就 `ERR_MODULE_NOT_FOUND`;也别用 `#/` 开头,那是 Node 保留的
+  非法形式。tsconfig 里的 `paths` 只为 tsc 提供同一映射
+- bundler 解析契约:`npm run build` 的 dist 不能再用 node 直跑,全项目经 tsx 运行
 - SQL 关键字小写(`select` / `create table`),FTS5 模块名与语法保留大写
   (`fts5` 虚表名小写、`OR` 大写)
 - 注释只描述设计本身,不引用外部文档章节号

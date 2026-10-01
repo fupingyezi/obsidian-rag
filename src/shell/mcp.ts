@@ -29,9 +29,9 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
-import { buildCore } from "../config.js";
-import type { AppConfig } from "../config.js";
-import type { Core } from "../core/index.js";
+import { buildCore } from "#src/config";
+import type { AppConfig } from "#src/config";
+import type { Core } from "#src/core/index";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 
 /**

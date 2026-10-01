@@ -14,7 +14,7 @@
  */
 import OpenAI from "openai";
 
-import type { Embedder } from "../core/types.js";
+import type { Embedder } from "#src/core/types";
 
 const BATCH_SIZE = 64;
 

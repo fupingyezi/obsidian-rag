@@ -15,7 +15,7 @@ import { dirname } from "node:path";
 import Database from "better-sqlite3";
 import * as sqliteVec from "sqlite-vec";
 
-import { schemaSql } from "./schema.js";
+import { schemaSql } from "#src/lib/vec-db/schema";
 
 /** 打开并初始化向量库(幂等,可重复调用):建目录 → 开连接 → pragma → 加载扩展 → 建表 */
 export function openDb(dbPath: string, dim: number): Database.Database {

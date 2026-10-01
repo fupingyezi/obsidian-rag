@@ -21,8 +21,8 @@
 import * as segmentit from "segmentit";
 import type { SegWord } from "segmentit";
 
-import type { FileMeta, ScoredChunk } from "../../core/types.js";
-import { openDb } from "./db.js";
+import type { FileMeta, ScoredChunk } from "#src/core/types";
+import { openDb } from "#src/lib/vec-db/db";
 
 // ── segmentit 懒加载:词典初始化约 1~2 秒,只在第一次用到时初始化 ────────
 // ⚠️ 运行时两个入口的导出形态不同:CJS 入口(原生 node 走 main 字段,

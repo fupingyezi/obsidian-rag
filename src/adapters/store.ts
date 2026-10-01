@@ -12,9 +12,9 @@
  *   2. 检索编排:两路召回各多取 4 倍候选(个人库量级无性能压力),
  *      标签过滤放 JS 侧,过滤后截 topK
  */
-import { toEmbedText } from "../core/chunk.js";
-import type { ScoredChunk, Store } from "../core/types.js";
-import { createVecDb } from "../lib/vec-db/index.js";
+import { toEmbedText } from "#src/core/chunk";
+import type { ScoredChunk, Store } from "#src/core/types";
+import { createVecDb } from "#src/lib/vec-db/index";
 
 /** 创建基于 sqlite-vec 的 Store。dim 必须与 Embedder.dim 一致(vec0 建表时固定维度) */
 export function createStore(dbPath: string, dim: number): Store {
