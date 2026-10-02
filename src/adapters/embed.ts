@@ -21,6 +21,18 @@ const BATCH_SIZE = 64;
 // zhipu 的 OpenAI 兼容端点(走 /api/paas/v4):
 const BASE_URL = "https://open.bigmodel.cn/api/paas/v4";
 
+/**
+ * 输出前归一化到单位长度。
+ */
+function normalize(v: Float32Array): Float32Array {
+  let sum = 0;
+  for (const x of v) sum += x * x;
+  const norm = Math.sqrt(sum);
+  if (norm < 1e-12) return v; // 零向量,除它只会得到 NaN,原样返回
+  for (let i = 0; i < v.length; i++) v[i] = v[i]! / norm;
+  return v;
+}
+
 export function createEmbedder(cfg: {
   model: string;
   apiKey: string;
@@ -45,7 +57,7 @@ export function createEmbedder(cfg: {
 
       const ordered = [...response.data].sort((a, b) => a.index - b.index);
       for (const item of ordered) {
-        vectors.push(new Float32Array(item.embedding));
+        vectors.push(normalize(new Float32Array(item.embedding)));
       }
     }
     return vectors;

@@ -36,6 +36,10 @@
   插入必须显式指定 rowid
 - `upsertFile` 是单事务(删旧块 → 插新块 → 更新元数据),不许拆开
 - `exactOptionalPropertyTypes` 开着:可选属性不要传 `undefined`,用条件展开
+- 向量统一在 embedder 出口归一化(embedding-3 实测返回未归一化向量,
+  vec0 KNN 默认 L2 度量,归一化后 L2 排序与余弦等价)。改归一化行为或
+  EMBED_DIM 都必须删库重建 —— 增量索引按 mtime+hash 跳过,不会重嵌
+  已入库的旧向量,新旧混用比不归一化更糟
 
 ## 外部接口的坑(全部实测踩过)
 
