@@ -17,7 +17,7 @@ import type {
 
 // 三个魔法数,实现时直接用作常量:
 const RECALL_EACH = 50; //两路召回各取的候选数,个人库足够宽
-const RERANK_CANDIDATES = 20; //交给 rerank 的候选数(「候选 20 取 5」)
+const RERANK_CANDIDATES = 20; //RRF 融合后保留的候选池宽度,rerank 在这里面挑(「候选 20 取 5」)
 const RRF_K = 60; //RRF 常数 k
 
 export async function retrieve(
@@ -41,23 +41,31 @@ export async function retrieve(
     store.ftsSearch(q, RECALL_EACH, opts?.filterTags),
   ]);
 
+  // 候选池宽度
+  const poolSize = rerank ? Math.max(topK, RERANK_CANDIDATES) : topK;
+
   const candidateIds = rrf(
     vecHits.map((t) => t.id),
     ftsHits.map((t) => t.id),
     RRF_K,
-    topK,
+    poolSize,
   );
 
   const hitsById = new Map<number, ScoredChunk>();
   for (const hit of [...vecHits, ...ftsHits]) hitsById.set(hit.id, hit);
 
-  const ranked = candidateIds.map((id) => hitsById.get(id)!);
+  let ranked = candidateIds.map((id) => hitsById.get(id)!);
 
-  if (rerank && RERANK_CANDIDATES > topK) {
-    const docs = ranked.map((t) => `${t.headingPath}\n${t.raw}`);
+  if (rerank) {
+    // 精排宽度固定为 RERANK_CANDIDATES:topK 超过它时只精排池头(RRF 序),
+    // 池尾按原序衔接 —— 任何参数组合下 rerank 不静默失效、不超宽度调用
+    const head = ranked.slice(0, RERANK_CANDIDATES);
+    const tail = ranked.slice(RERANK_CANDIDATES);
+    const docs = head.map((t) => `${t.headingPath}\n${t.raw}`);
     const scores = await rerank(q, docs);
-    ranked.forEach((t, i) => (t.score = scores[i] ?? 0));
-    ranked.sort((x, y) => y.score - x.score);
+    head.forEach((t, i) => (t.score = scores[i] ?? 0));
+    head.sort((x, y) => y.score - x.score);
+    ranked = [...head, ...tail];
   }
 
   const sources = ranked.slice(0, topK).map((t) => ({
