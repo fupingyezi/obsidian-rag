@@ -40,6 +40,8 @@
   vec0 KNN 默认 L2 度量,归一化后 L2 排序与余弦等价)。改归一化行为或
   EMBED_DIM 都必须删库重建 —— 增量索引按 mtime+hash 跳过,不会重嵌
   已入库的旧向量,新旧混用比不归一化更糟
+- 关键词路 BM25F:`bm25(chunks_fts, 正文权重, 标题权重)` 按列序传参
+  (fts_text 第 0 列,heading_path 第 1 列),常量在 lib/vec-db/index.ts
 
 ## 外部接口的坑(全部实测踩过)
 

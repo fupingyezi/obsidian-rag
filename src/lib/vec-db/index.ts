@@ -74,7 +74,7 @@ export interface VecDb {
   countChunks(): number;
   /** 向量路召回:取离 qv 最近的 limit 个片段,score = 1/(distance+ε),越大越相关 */
   knnSearch(qv: Float32Array, limit: number): ScoredChunk[];
-  /** 关键词路召回:查询串分词后各词 OR 匹配,score = -bm25,越大越相关 */
+  /** 关键词路召回:查询串分词后各词 OR 匹配,标题列加权(BM25F),score = -bm25,越大越相关 */
   ftsSearch(q: string, limit: number): ScoredChunk[];
   close(): void;
 }
@@ -138,9 +138,15 @@ export function createVecDb(dbPath: string, dim: number): VecDb {
     join chunks c on c.id = v.rowid
     where v.embedding match ? and k = ?
   `);
+  /** 关键词路 BM25F 列权重:bm25 的权重按列序传入 —— fts_text(正文)= 1,heading_path(标题)= 3。
+   *  FTS5 的列权重乘在词频上(Robertson 版 BM25F):各列词频加权求和后走同一条 k1 饱和曲线,
+   *  标题命中 1 次 ≈ 正文命中 3 次。
+   *  分数只决定关键词路内部名次(RRF 只消费名次),绝对分值无所谓 */
+  const FTS_BODY_WEIGHT = 1;
+  const FTS_HEADING_WEIGHT = 3;
   const selectFts = db.prepare<unknown[], ChunkRow>(`
     select c.id, c.file_path, c.heading_path, c.raw, c.line_from, c.line_to,
-           c.tags, c.links, bm25(chunks_fts) as rank
+           c.tags, c.links, bm25(chunks_fts, ${FTS_BODY_WEIGHT}, ${FTS_HEADING_WEIGHT}) as rank
     from chunks_fts
     join chunks c on c.id = chunks_fts.rowid
     where chunks_fts match ?

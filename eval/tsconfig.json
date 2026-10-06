@@ -1,11 +1,13 @@
 {
   // eval/ 的独立工程:根 tsconfig 只 include src(产物干净),
   // 但 IDE 会把排除的文件当「推断工程」打开,丢掉 @types/node —— 这里接回来。
-  // 评测脚本由 tsx 直接跑,只做类型检查,不产出文件
+  // 评测脚本由 tsx 直接跑,只做类型检查,不产出文件。
+  // eval 脚本 import #src 会把 src 拉进本工程:rootDir 要抬到 .. 才盖得住;
+  // segmentit 的声明 shim 在 src/types 下,也要一并 include
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "..",
     "noEmit": true
   },
-  "include": ["."]
+  "include": [".", "../src/types"]
 }
